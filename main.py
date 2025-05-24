@@ -1,180 +1,67 @@
-import flet
-from flet import *
-from functools import partial
-import time
+from flet import *  
+import flet as ft  
+from src.pages.navbar import ModernNavBar, sidebar_column_ref
 
-# Ref global para a coluna da sidebar
-sidebar_column_ref = Ref[Column]()
+# Função principal que o Flet vai rodar para montar a interface
+def main(page: Page):
+    # Título da janela
+    page.title = "Sistema Solar"
+    # Cor de fundo da página (background)
+    page.bgcolor = "#e8edf3"  # Aqui você pode mudar a cor de fundo geral da aplicação
+    # Permitir rolagem automática da página
+    page.scroll = "auto"
 
-# Sidebar Class
-class ModernNavBar:
-    def __init__(self, func):
-        self.func = func
+    # Área principal onde o conteúdo da página será exibido (dentro da coluna)
+    content_area = Column()
+    # Controle do estado do menu (aberto ou fechado)
+    menu_aberto = True
 
-    def HighLight(self, e):
-        if e.data == 'true':
-            e.control.bgcolor = "white10"
-            e.control.update()
-            e.control.content.controls[0].icon_color = 'white'
-            e.control.content.controls[1].color = 'white'
-            e.control.content.update()
-        else:
-            e.control.bgcolor = None
-            e.control.update()
-            e.control.content.controls[0].icon_color = 'white54'
-            e.control.content.controls[1].color = 'white'
-            e.control.content.update()
+    # Função para trocar o conteúdo da área principal e controlar o menu lateral
+    def trocar_conteudo(e):
+        nonlocal menu_aberto
+        print(f"Evento disparado por: {e.control}")
 
-    def UserData(self, initials: str, name: str, description: str):
-        return Container(
-            content=Row(
-                controls=[
-                    Container(
-                        width=42,
-                        height=42,
-                        bgcolor="bluegrey900",
-                        alignment=alignment.center,
-                        border_radius=8,
-                        content=Text(
-                            value=initials,
-                            size=20,
-                            weight="bold",
-                        ),
-                    ),
-                    Column(
-                        spacing=1,
-                        alignment="center",
-                        controls=[
-                            Text(
-                                value=name,
-                                size=11,
-                                weight='bold',
-                                opacity=1,
-                                animate_opacity=200
-                            ),
-                            Text(
-                                value=description,
-                                size=10,
-                                weight='w400',
-                                color="white54",
-                                opacity=1,
-                                animate_opacity=200,
-                            )
-                        ]
-                    )
-                ]
+        # Se clicou no ícone do menu (botão de recolher/expandir a sidebar)
+        if hasattr(e.control, "content") and isinstance(e.control.content, Icon) and e.control.content.name == icons.MENU:
+            menu_aberto = not menu_aberto
+            # Altera a largura da coluna da sidebar entre 200px (expandida) e 0px (recolhida)
+            sidebar_column_ref.current.width = 200 if menu_aberto else 0
+            sidebar_column_ref.current.update()
+            return
+
+        # Se clicou em algum item do menu
+        if e.control.content and hasattr(e.control.content, "controls") and len(e.control.content.controls) > 1:
+            # Pega o texto do item clicado, converte para minúsculas para identificar a página
+            nome_pagina = e.control.content.controls[1].value.lower()
+            print(f"Página selecionada: {nome_pagina}")
+            # Limpa o conteúdo atual e adiciona uma mensagem com o nome da página selecionada
+            content_area.controls.clear()
+            content_area.controls.append(
+                Text(f"Você está na página: {nome_pagina}", color="white")  # Texto exibido na área principal, cor branca
             )
-        )
+            page.update()
+        else:
+            print("Elemento sem conteúdo acessível.")
+            
+           
+                        
 
-    def ContainedIcon(self, icon_name: str, text: str):
-        return Container(
-            width=180,
-            height=45,
-            border_radius=10,
-            on_hover=lambda e: self.HighLight(e),
-            content=Row(
-                controls=[
-                    IconButton(
-                        icon=icon_name,
-                        icon_size=18,
-                        icon_color="white54",
-                        style=ButtonStyle(
-                            shape={"": RoundedRectangleBorder(radius=7)},
-                            overlay_color={"": "Transparent"},
-                        ),
-                    ),
-                    Text(
-                        value=text,
-                        color="white54",
-                        size=12,
-                        opacity=1,
-                        animate_opacity=200,
-                    ),
-                ]
-            ),
-        )
+    # Cria o objeto ModernNavBar, passando a função trocar_conteudo para manipular eventos do menu
+    nav = ModernNavBar(func=trocar_conteudo)
 
-    def build(self):
-        return Column(  # <- Adicionamos o Ref aqui
-            ref=sidebar_column_ref,
-            alignment=MainAxisAlignment.CENTER,
-            horizontal_alignment="center",
+    # Monta a página adicionando uma linha com 3 controles:
+    # 1. A navbar lateral
+    # 2. Uma linha vertical divisória
+    # 3. A área de conteúdo (expandida para ocupar o restante do espaço)
+    page.add(
+        Row(
             controls=[
-                self.UserData("DS", "Flexx Solar", "Técnico de Cadastro Solar"),
-                Container(
-                    width=24,
-                    height=24,
-                    bgcolor="bluegrey800",
-                    border_radius=8,
-                    on_click=partial(self.func),
-                ),
-                Divider(height=5, color="Transparent"),
-                self.ContainedIcon(icons.SEARCH, "Pesquisar"),
-                self.ContainedIcon(icons.DASHBOARD_ROUNDED, "Dashboard"),
-                self.ContainedIcon(icons.BAR_CHART, "Revenue"),
-                self.ContainedIcon(icons.NOTIFICATIONS, "Perfil"),
-                self.ContainedIcon(icons.PIE_CHART_OUTLINE_ROUNDED, "Configurações"),
-                self.ContainedIcon(icons.FAVORITE_ROUNDED, "Favoritos"),
-                self.ContainedIcon(icons.WALLET_ROUNDED, "Carteira"),
-                Divider(height=5, color="white24"),
-                self.ContainedIcon(icons.LOGOUT_ROUNDED, "Sair"),
+                nav.build(),  # Monta e insere a navbar lateral
+                VerticalDivider(width=1, color="black"),  # Linha divisória preta vertical
+                Container(content=content_area, padding=20, expand=True)  # Área principal do conteúdo
             ]
         )
-
-# main function
-def main(page: Page):
-    page.title = 'Flet Modern Sidebar'
-    page.horizontal_alignment = 'center'
-    page.vertical_alignment = 'center'
-
-    def AnimateSidebar(e):
-        sidebar_container = page.controls[0]
-        sidebar_column = sidebar_column_ref.current  # Obtendo Column via ref
-
-        if sidebar_container.width != 62:
-            sidebar_container.width = 62
-            sidebar_container.update()
-
-            # Esconder textos
-            user_data_column = sidebar_column.controls[0].content.controls[1]
-            for item in user_data_column.controls:
-                item.opacity = 0
-                item.update()
-
-            # Esconder texto dos ícones do menu
-            for item in sidebar_column.controls[3:]:
-                if isinstance(item, Container) and isinstance(item.content, Row):
-                    item.content.controls[1].opacity = 0
-                    item.content.update()
-
-        else:
-            sidebar_container.width = 200
-            sidebar_container.update()
-            time.sleep(0.2)
-
-            # Mostrar textos novamente
-            user_data_column = sidebar_column.controls[0].content.controls[1]
-            for item in user_data_column.controls:
-                item.opacity = 1
-                item.update()
-
-            for item in sidebar_column.controls[3:]:
-                if isinstance(item, Container) and isinstance(item.content, Row):
-                    item.content.controls[1].opacity = 1
-                    item.content.update()
-
-    sidebar = Container(
-        width=200,
-        height=580,
-        bgcolor="black",
-        border_radius=10,
-        animate=animation.Animation(500, "decelerate"),
-        alignment=alignment.center,
-        padding=10,
-        content=ModernNavBar(AnimateSidebar).build(),
     )
 
-    page.add(sidebar)
-    page.update()
-
-flet.app(target=main)
+# Inicializa o app Flet com a função main como alvo
+ft.app(target=main)
