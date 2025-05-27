@@ -11,39 +11,39 @@ class ModernNavBar:
         self.expanded = True  # Estado inicial da navbar: expandida (True) ou recolhida (False)
 
         # ====== PALETA DE CORES ======
-        # Altere essas cores para mudar visualmente toda a navbar
         self.color_blue = "#005e9b"               # Cor azul usada para ícones e texto no modo normal (expandido)
         self.color_orange = "#ff8c0d"             # Cor laranja para destaque (hover)
         self.color_blue_light = "#4a90e2"         # Azul claro (não usado muito neste código)
         self.color_gray_dark = "#333333"          # Cinza escuro para texto em estado normal
         self.color_gray_medium = "#7d7d7d"        # Cinza médio para textos secundários
         self.color_gray_light = "#d3d3d3"         # Cinza claro usado para divisor (divider)
-        self.color_white = "#ffffff"               # Cor branca para texto e ícones sobre fundo escuro
-        self.color_black_soft = "#121212"          # Preto suave (não usado diretamente aqui)
+        self.color_white = "#ffffff"              # Cor branca para texto e ícones sobre fundo escuro
+        self.color_black_soft = "#121212"         # Preto suave (não usado diretamente aqui)
         
         # Cores de fundo da navbar para os estados expandido e recolhido
         self.color_navbar_bg_expanded = "#e7eaf0"  # Fundo claro da navbar quando expandida
         self.color_navbar_bg_collapsed = "#005e9b" # Fundo azul escuro quando recolhida (modo compacto)
 
-        self.color_orange_hover = "#4caf50"        # Cor laranja clara para hover (passar o mouse em cima)
-        self.color_error = "#f44336"                # Cor vermelha para erros (não usada aqui)
-        self.color_success = "#4caf50"              # Cor verde para sucesso (não usada aqui)
+        self.color_orange_hover = "#4caf50"        # Cor laranja clara para hover
+        self.color_error = "#f44336"               # Cor vermelha para erros (não usada aqui)
+        self.color_success = "#4caf50"             # Cor verde para sucesso (não usada aqui)
 
     # Função que controla o efeito hover (mouse em cima de um item)
     def HighLight(self, e):
         if e.data == 'true':  # Se está em hover (true)
-            e.control.bgcolor = self.color_orange_hover  # Fundo laranja claro para destaque
+            e.control.bgcolor = self.color_orange_hover  # Fundo verde para destaque
             e.control.update()
-            # Ícone e texto ficam brancos para contraste sobre o fundo laranja
+            # Ícone e texto ficam brancos para contraste
             e.control.content.controls[0].icon_color = self.color_white
             if len(e.control.content.controls) > 1:
                 e.control.content.controls[1].color = self.color_white
                 e.control.content.update()
         else:  # Quando o mouse sai (hover falso)
-            e.control.bgcolor = None  # Fundo transparente no modo normal
+            e.control.bgcolor = None  # Fundo transparente
             e.control.update()
-            # Ícone azul e texto cinza escuro
-            e.control.content.controls[0].icon_color = self.color_blue
+            # Ícone azul (expandido) ou branco (recolhido)
+            icon_color = self.color_blue if self.expanded else self.color_white
+            e.control.content.controls[0].icon_color = icon_color
             if len(e.control.content.controls) > 1:
                 e.control.content.controls[1].color = self.color_gray_dark
                 e.control.content.update()
@@ -85,7 +85,7 @@ class ModernNavBar:
                                 value=description,
                                 size=10,
                                 weight='w400',
-                                color=self.color_gray_medium,  # Descrição em cinza médio
+                                color=self.color_gray_medium,  # Descrição em cinza
                                 opacity=1,
                                 animate_opacity=200,
                             )

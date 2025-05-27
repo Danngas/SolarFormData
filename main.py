@@ -64,5 +64,6 @@ def main(page: Page):
         )
     )
 
+
 # Inicializa o app Flet com a função main como alvo
 ft.app(target=main)
