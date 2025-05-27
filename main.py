@@ -44,6 +44,7 @@ def main(page: Page):
             print("Elemento sem conteúdo acessível.")
             
            
+           #nada
                         
 
     # Cria o objeto ModernNavBar, passando a função trocar_conteudo para manipular eventos do menu
