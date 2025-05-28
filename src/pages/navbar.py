@@ -86,21 +86,22 @@ class ModernNavBar:
 
     def ContainedIcon(self, icon_name: str, text: str, route: str):
         return ft.Container(
-            width=180,
+            width=180 if self.expanded else 50,  # Ajusta largura
             height=45,
             border_radius=10,
             on_hover=lambda e: self.HighLight(e),
-            on_click=lambda e: self.on_navigate(route),  # Chama callback
+            on_click=lambda e: self.on_navigate(route),  # Navegação no Container
             content=ft.Row(
                 controls=[
                     ft.IconButton(
                         icon=icon_name,
                         icon_size=18,
-                        icon_color=self.color_blue,
+                        icon_color=self.color_blue if self.expanded else self.color_white,
                         style=ft.ButtonStyle(
                             shape={"": ft.RoundedRectangleBorder(radius=7)},
                             overlay_color={"": "Transparent"},
                         ),
+                        on_click=lambda e: self.on_navigate(route),  # Navegação no ícone
                     ),
                     ft.Text(
                         value=text,
@@ -130,35 +131,24 @@ class ModernNavBar:
                 text_column.opacity = 1 if self.expanded else 0
                 text_column.update()
 
-        # Atualiza cor dos ícones
-        for control in column.controls:
-            if isinstance(control, ft.Container) and isinstance(control.content, ft.Row):
-                icon_button = control.content.controls[0]
-                if isinstance(icon_button, ft.IconButton):
-                    icon_button.icon_color = self.color_blue if self.expanded else self.color_white
-                    icon_button.update()
-
-        # Atualiza botão de menu
-        menu_button = column.controls[1]
-        if isinstance(menu_button, ft.Container) and isinstance(menu_button.content, ft.Icon):
-            menu_button.content.color = self.color_blue if self.expanded else self.color_white
-            menu_button.update()
-
-        sidebar.update()
-
-        # Ajusta visibilidade dos textos
+        # Atualiza cor dos ícones e largura dos containers
         for control in column.controls:
             if isinstance(control, ft.Container):
-                if isinstance(control.content, ft.Row) and len(control.content.controls) > 1:
-                    if isinstance(control.content.controls[1], ft.Text):
+                if isinstance(control.content, ft.Row):
+                    icon_button = control.content.controls[0]
+                    if isinstance(icon_button, ft.IconButton):
+                        icon_button.icon_color = self.color_blue if self.expanded else self.color_white
+                        icon_button.update()
+                    control.width = 180 if self.expanded else 50  # Ajusta largura
+                    if len(control.content.controls) > 1:
                         control.content.controls[1].visible = self.expanded
                         control.content.controls[1].opacity = 1 if self.expanded else 0
                         control.content.update()
-                if control.content and isinstance(control.content, ft.Column):
-                    for txt in control.content.controls:
-                        txt.visible = self.expanded
-                        txt.opacity = 1 if self.expanded else 0
-                        txt.update()
+                elif isinstance(control.content, ft.Icon):  # Botão de menu
+                    control.content.color = self.color_blue if self.expanded else self.color_white
+                    control.update()
+
+        sidebar.update()
         column.update()
 
     def build(self):
@@ -166,6 +156,12 @@ class ModernNavBar:
             ref=sidebar_ref,
             width=200,
             bgcolor=self.color_navbar_bg_expanded,
+            border_radius=ft.BorderRadius(
+                top_left=0,
+                top_right=10,
+                bottom_left=0,
+                bottom_right=10
+            ),  # Arredonda apenas cantos direitos
             animate=ft.Animation(duration=300, curve="easeInOut"),
             padding=10,
             content=ft.Column(
